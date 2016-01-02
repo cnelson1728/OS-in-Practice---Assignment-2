@@ -15,12 +15,12 @@ display_result() {
 
 while true; do
 exec 3>&1
-selection=$(dialog \
+selection=$(dialog \ #Creates a menu list for the user to select a routine
 --backtitle "Operating Systems in Practice - Assingment 2" \
 --title "Current Directory: $PWD" \
 --clear \
 --cancel-label "Exit" \
---menu "Please select:" $HEIGHT $WIDTH 3 \
+--menu "Please select:" $HEIGHT $WIDTH 3 \ #Changes the size of the menu box
 "1" "Display System Information" \
 "2" "Display Disk Space" \
 "3" "Display Home Space Utilization" \
@@ -47,11 +47,11 @@ clear
 echo "Program terminated."
 ;;
 1 )
-result=$(echo "Hostname: $HOSTNAME"; uptime)
+result=$(echo "Hostname: $HOSTNAME"; uptime) #echos the hostname and uptime
 display_result "System Information"
 ;;
 2 )
-result=$(df -h)
+result=$(df -h) #df reports the available disk space on the system
 display_result "Disk Space"
 ;;
 3 )
@@ -63,5 +63,3 @@ result=$(du -sh $HOME 2> /dev/null)
 display_result "Home Space Utilization ($USER)"
 fi
 ;;
-esac
-done
