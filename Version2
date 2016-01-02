@@ -79,3 +79,4 @@ case $? in
 		echo "Box closed.";; #echos if the box closed
 esac
 ;;
+done
