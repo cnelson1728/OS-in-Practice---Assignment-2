@@ -1,0 +1,98 @@
+#!/bin/bash
+
+DIALOG_CANCEL=1
+DIALOG_ESC=255
+HEIGHT=0
+WIDTH=60
+
+display_result() {
+
+	dialog --title "$1" \
+	--no-collapse \
+	--msgbox "$result" 0 0
+
+}
+
+while true; do
+exec 3>&1
+selection=$(dialog \ #Creates a menu list for the user to select a routine
+--backtitle "Operating Systems in Practice - Assingment 2" \
+--title "Current Directory: $PWD" \
+--clear \
+--cancel-label "Exit" \
+--menu "Please select:" $HEIGHT $WIDTH 7 \ #Changes the size of the menu box
+"1" "Display System Information" \
+"2" "Display Disk Space" \
+"3" "Display Home Space Utilization" \
+"4" "Choose a directory" \
+"5" "Display contents of Current Directory" \
+"6" "Display sum of all file sizes (KB)" \
+"7" "Display individual file sizes" \
+2>&1 1>&3)
+exit_status=$?
+exec 3>&-
+
+case $exit_status in
+$DIALOG_CANCEL)
+clear
+echo "Program terminated."
+exit
+;;
+$DIALOG_ESC)
+clear
+echo "Program aborted." >&2
+exit 1
+;;
+esac
+
+case $selection in
+0 )
+clear
+echo "Program terminated."
+;;
+1 )
+result=$(echo "Hostname: $HOSTNAME"; uptime) #echos the hostname and uptime
+display_result "System Information"
+;;
+2 )
+result=$(df -h) #df reports the available disk space on the system
+display_result "Disk Space"
+;;
+3 )
+if [[ $(id -u) -eq 0 ]]; then
+result=$(du -sh /home/* 2> /dev/null)
+display_result "Home Space Utilization (All Users)"
+else
+result=$(du -sh $HOME 2> /dev/null)
+display_result "Home Space Utilization ($USER)"
+fi
+;;
+4 )
+DIALOG=${DIALOG=dialog} #Creates a dialog box that allows the user to select a directory
+
+FILE=`$DIALOG --stdout --title "Please choose a file" --fselect $HOME/ 14 48`
+
+case $? in
+	0)
+		echo "\"$FILE\" chosen" #echos the file/directory that the user has chosen
+		cd $FILE	;;
+	1)
+		echo "Cancel pressed.";; #echos if cancel button is pressed
+	255)
+		echo "Box closed.";; #echos if the box closed
+esac
+;;
+5 )
+result=$(ls -lh) #ls shows the files in current directory, -l puts it in long list format, and -h makes it human readable format
+display_result "Display Files in Current Directory"
+;;
+6 )
+result=$(du -k | awk '{sum += $1}; END {print sum}') #du reports the size of directory trees, -k displays the size in kilobytes
+display_result "Display sum of all file sizes (KB)"
+;;
+7 )
+result=$(du -akh>size.txt) #variation of du command that shows individual file sizes, -a displays usage of all files and folders
+dialog --textbox size.txt 30 50
+;;
+esac
+done
